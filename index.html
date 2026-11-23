@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#17231d">
+<title>Sawdust &amp; Stitches Order Calculator</title>
+<style>
+  :root { color-scheme: light; --ink:#17231d; --muted:#66736b; --line:#dce4dd; --green:#285c3a; --pale:#f3f7f3; --gold:#f0bd57; }
+  * { box-sizing:border-box; }
+  body { margin:0; padding:18px 14px 30px; background:#eef2ee; color:var(--ink); font:16px/1.4 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+  main { max-width:760px; margin:0 auto; }
+  header { background:var(--ink); color:white; padding:22px 20px; border-radius:18px 18px 0 0; }
+  header .brand { margin:0 0 4px; color:#d5e5d8; font-size:12px; font-weight:700; letter-spacing:.11em; text-transform:uppercase; }
+  h1 { margin:0; font-size:25px; line-height:1.15; }
+  header p { margin:8px 0 0; color:#d4ddd6; font-size:14px; }
+  section { background:white; padding:18px; border-bottom:1px solid var(--line); }
+  h2 { margin:0 0 13px; font-size:17px; }
+  .items { display:grid; gap:10px; }
+  .item { border:1px solid var(--line); border-radius:13px; padding:13px; }
+  .item-title { display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:12px; font-weight:700; }
+  .item-title small { color:var(--muted); font-weight:500; }
+  .fields { display:grid; grid-template-columns:1fr 1fr 1fr; gap:9px; }
+  label { display:block; color:var(--muted); font-size:14px; font-weight:650; }
+  input, select { margin-top:4px; width:100%; min-height:43px; border:1px solid #cbd6cd; border-radius:9px; padding:8px 9px; color:var(--ink); background-color:#fff; font:inherit; font-size:16px; }
+  input:focus, select:focus { outline:3px solid #b9d7c0; border-color:var(--green); }
+  select { appearance:none; padding-right:38px; background-image:linear-gradient(45deg,transparent 50%,var(--green) 50%),linear-gradient(135deg,var(--green) 50%,transparent 50%); background-position:calc(100% - 17px) 19px,calc(100% - 12px) 19px; background-size:5px 5px; background-repeat:no-repeat; }
+  .product-picker { margin-bottom:11px; }
+  .qty-wrap { display:flex; gap:4px; align-items:center; }
+  .qty-wrap input { text-align:center; min-width:0; padding:6px 2px; }
+  button { cursor:pointer; font:inherit; }
+  .step { flex:0 0 36px; height:40px; border:1px solid var(--line); border-radius:9px; color:var(--green); background:var(--pale); font-size:22px; line-height:1; }
+  .extras { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .calculate-bar { background:white; padding:0 18px 18px; }
+  .calculate { width:100%; min-height:54px; border:0; border-radius:12px; padding:13px 18px; background:var(--green); color:white; font-size:18px; font-weight:800; box-shadow:0 4px 10px rgba(23,35,29,.16); }
+  .calculate:active { transform:translateY(1px); box-shadow:0 2px 6px rgba(23,35,29,.18); }
+  .calculate:focus-visible { outline:3px solid var(--gold); outline-offset:2px; }
+  .summary { background:var(--pale); }
+  .big-total { display:flex; justify-content:space-between; align-items:end; gap:12px; padding:15px; border-radius:13px; background:var(--green); color:white; }
+  .big-total span { font-size:14px; }
+  .big-total strong { font-size:32px; line-height:1; white-space:nowrap; }
+  .profit { display:flex; justify-content:space-between; align-items:center; padding:15px 2px 8px; font-weight:700; }
+  .profit strong { color:var(--green); font-size:24px; }
+  .line { display:flex; justify-content:space-between; gap:16px; padding:7px 2px; color:#455149; font-size:14px; border-bottom:1px solid #dce6dd; }
+  .note { margin:11px 2px 0; color:var(--muted); font-size:12px; }
+  .actions { display:flex; justify-content:space-between; gap:10px; background:white; border-radius:0 0 18px 18px; padding:14px 18px 18px; }
+  .reset { border:1px solid var(--line); border-radius:10px; padding:10px 13px; background:white; color:var(--ink); font-weight:650; }
+  .tax-note { align-self:center; color:var(--muted); font-size:12px; text-align:right; }
+  @media (max-width:480px) { body { padding:10px 8px 22px; } header { padding:19px 16px; } section { padding:15px 13px; } .fields { gap:6px; } .item { padding:11px 9px; } .step { flex-basis:31px; } input, select { font-size:16px; padding:7px 5px; } select { padding-right:35px; } label { font-size:14px; } .big-total strong { font-size:29px; } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <p class="brand">Sawdust &amp; Stitches</p>
+    <h1>Apparel Order Calculator</h1>
+    <p>Choose each garment, then change quantities, prices, or costs. The quote and profit update automatically.</p>
+  </header>
+  <section>
+    <h2>Garments</h2>
+    <div class="items">
+      <div class="item" data-item="shirts">
+        <div class="item-title"><span>Shirts</span><small>Blank garment price</small></div>
+        <label class="product-picker">Shirt option
+          <select id="shirts-product">
+            <option value="gildan-5000">Gildan 5000 Heavy Cotton</option>
+            <option value="gildan-2000">Gildan 2000 Ultra Cotton</option>
+            <option value="gildan-2400">Gildan 2400 Long Sleeve</option>
+            <option value="gildan-5300">Gildan 5300 Pocket Tee</option>
+            <option value="gildan-h000">Gildan H000 Hammer</option>
+            <option value="district-dt104">District DT104 Perfect Weight</option>
+            <option value="district-dt7075">District DT7075 Gritty Tee</option>
+            <option value="cornerstone-cs430">CornerStone CS430</option>
+            <option value="cornerstone-cs440">CornerStone CS440</option>
+            <option value="customer-supplied">Customer supplied</option>
+          </select>
+        </label>
+        <div class="fields">
+          <label>Quantity<div class="qty-wrap"><button class="step" type="button" data-step="-1" aria-label="Remove one shirt">−</button><input id="shirts-qty" type="number" min="0" step="1" value="10" inputmode="numeric"><button class="step" type="button" data-step="1" aria-label="Add one shirt">+</button></div></label>
+          <label>Sell price each ($)<input id="shirts-price" type="number" min="0" step="0.01" value="6" inputmode="decimal"></label>
+          <label>Blank cost each ($)<input id="shirts-cost" type="number" min="0" step="0.01" value="3.11" inputmode="decimal"></label>
+        </div>
+      </div>
+      <div class="item" data-item="hoodies">
+        <div class="item-title"><span>Hoodies</span><small>Blank garment price</small></div>
+        <label class="product-picker">Hoodie option
+          <select id="hoodies-product">
+            <option value="gildan-18500">Gildan 18500 Heavy Blend Pullover</option>
+            <option value="district-dt6150">District DT6150 V.I.T. Pullover</option>
+            <option value="district-dt6102">District DT6102 Full-Zip</option>
+            <option value="customer-supplied">Customer supplied</option>
+          </select>
+        </label>
+        <div class="fields">
+          <label>Quantity<div class="qty-wrap"><button class="step" type="button" data-step="-1" aria-label="Remove one hoodie">−</button><input id="hoodies-qty" type="number" min="0" step="1" value="5" inputmode="numeric"><button class="step" type="button" data-step="1" aria-label="Add one hoodie">+</button></div></label>
+          <label>Sell price each ($)<input id="hoodies-price" type="number" min="0" step="0.01" value="20" inputmode="decimal"></label>
+          <label>Blank cost each ($)<input id="hoodies-cost" type="number" min="0" step="0.01" value="12.76" inputmode="decimal"></label>
+        </div>
+      </div>
+      <div class="item" data-item="hats">
+        <div class="item-title"><span>Hats</span><small>Blank garment price</small></div>
+        <label class="product-picker">Hat option
+          <select id="hats-product">
+            <option value="richardson-112">Richardson 112</option>
+            <option value="flexfit-5001">Flexfit 5001</option>
+            <option value="port-company-cp96">Port &amp; Company CP96</option>
+            <option value="customer-supplied">Customer supplied</option>
+          </select>
+        </label>
+        <div class="fields">
+          <label>Quantity<div class="qty-wrap"><button class="step" type="button" data-step="-1" aria-label="Remove one hat">−</button><input id="hats-qty" type="number" min="0" step="1" value="10" inputmode="numeric"><button class="step" type="button" data-step="1" aria-label="Add one hat">+</button></div></label>
+          <label>Sell price each ($)<input id="hats-price" type="number" min="0" step="0.01" value="12" inputmode="decimal"></label>
+          <label>Blank cost each ($)<input id="hats-cost" type="number" min="0" step="0.01" value="6.75" inputmode="decimal"></label>
+        </div>
+      </div>
+      <div class="item" data-item="polos">
+        <div class="item-title"><span>Polos</span><small>Blank garment price</small></div>
+        <label class="product-picker">Polo option
+          <select id="polos-product">
+            <option value="port-authority-k200">Port Authority K200</option>
+            <option value="port-authority-k8000">Port Authority K8000</option>
+            <option value="customer-supplied">Customer supplied</option>
+          </select>
+        </label>
+        <div class="fields">
+          <label>Quantity<div class="qty-wrap"><button class="step" type="button" data-step="-1" aria-label="Remove one polo">−</button><input id="polos-qty" type="number" min="0" step="1" value="0" inputmode="numeric"><button class="step" type="button" data-step="1" aria-label="Add one polo">+</button></div></label>
+          <label>Sell price each ($)<input id="polos-price" type="number" min="0" step="0.01" value="17" inputmode="decimal"></label>
+          <label>Blank cost each ($)<input id="polos-cost" type="number" min="0" step="0.01" value="8.49" inputmode="decimal"></label>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section>
+    <h2>Embroidery</h2>
+    <div class="extras">
+      <label>Embroidery charge per item ($)<input id="embroidery-price" type="number" min="0" step="0.01" value="10" inputmode="decimal"></label>
+      <label>Digitizing charge ($)<input id="digitizing" type="number" min="0" step="0.01" value="20" inputmode="decimal"></label>
+      <label>Materials cost per item ($)<input id="materials" type="number" min="0" step="0.01" value="1" inputmode="decimal"></label>
+      <label>Other order costs ($)<input id="other-costs" type="number" min="0" step="0.01" value="0" inputmode="decimal"></label>
+    </div>
+  </section>
+  <div class="calculate-bar">
+    <button class="calculate" id="calculate-btn" type="button">Calculate Order</button>
+  </div>
+  <section class="summary" aria-live="polite">
+    <h2>Order total</h2>
+    <div class="big-total"><span>Customer pays before tax</span><strong id="total">$550.00</strong></div>
+    <div class="profit"><span>Estimated profit</span><strong id="profit">$362.60</strong></div>
+    <div class="line"><span>Garments</span><strong id="garment-sales">$280.00</strong></div>
+    <div class="line"><span>Embroidery</span><strong id="embroidery-sales">$250.00</strong></div>
+    <div class="line"><span>Digitizing</span><strong id="digitizing-sales">$20.00</strong></div>
+    <div class="line"><span>Blank garment costs</span><strong id="blank-costs">−$162.40</strong></div>
+    <div class="line"><span>Embroidery materials</span><strong id="material-costs">−$25.00</strong></div>
+    <div class="line"><span>Other costs</span><strong id="other-cost-display">−$0.00</strong></div>
+    <p class="note">Profit estimate subtracts garment and embroidery material costs. It treats digitizing as profit and excludes tax and other business overhead.</p>
+  </section>
+  <div class="actions">
+    <button class="reset" id="reset" type="button">Reset all defaults</button>
+    <span class="tax-note">Tax is not included<br>in the order total.</span>
+  </div>
+</main>
+<script>
+(() => {
+  const catalog = {
+    shirts: {
+      'gildan-5000': {price:6,cost:3.11},
+      'gildan-2000': {price:8,cost:2.74},
+      'gildan-2400': {price:10,cost:5.05},
+      'gildan-5300': {price:10,cost:5.01},
+      'gildan-h000': {price:8,cost:3.50},
+      'district-dt104': {price:10,cost:3.92},
+      'district-dt7075': {price:15,cost:4.50},
+      'cornerstone-cs430': {price:10,cost:5.02},
+      'cornerstone-cs440': {price:12,cost:5.79},
+      'customer-supplied': {price:0,cost:0}
+    },
+    hoodies: {
+      'gildan-18500': {price:20,cost:12.76},
+      'district-dt6150': {price:30,cost:15},
+      'district-dt6102': {price:30,cost:14.48},
+      'customer-supplied': {price:0,cost:0}
+    },
+    hats: {
+      'richardson-112': {price:12,cost:6.75},
+      'flexfit-5001': {price:15,cost:7.59},
+      'port-company-cp96': {price:6,cost:3.56},
+      'customer-supplied': {price:0,cost:0}
+    },
+    polos: {
+      'port-authority-k200': {price:17,cost:8.49},
+      'port-authority-k8000': {price:25,cost:13.40},
+      'customer-supplied': {price:0,cost:0}
+    }
+  };
+  const categories = ['shirts','hoodies','hats','polos'];
+  const productIds = categories.map(category => `${category}-product`);
+  const garmentIds = categories.flatMap(category => [`${category}-qty`,`${category}-price`,`${category}-cost`]);
+  const numericIds = [...garmentIds,'embroidery-price','digitizing','materials','other-costs'];
+  const ids = [...productIds,...numericIds];
+  const defaults = {'shirts-product':'gildan-5000','shirts-qty':10,'shirts-price':6,'shirts-cost':3.11,'hoodies-product':'gildan-18500','hoodies-qty':5,'hoodies-price':20,'hoodies-cost':12.76,'hats-product':'richardson-112','hats-qty':10,'hats-price':12,'hats-cost':6.75,'polos-product':'port-authority-k200','polos-qty':0,'polos-price':17,'polos-cost':8.49,'embroidery-price':10,'digitizing':20,'materials':1,'other-costs':0};
+  const $ = id => document.getElementById(id);
+  const val = id => Math.max(0, Number($(id).value) || 0);
+  const money = n => new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(n);
+  function calculate() {
+    const quantities = Object.fromEntries(categories.map(category => [category,val(`${category}-qty`)]));
+    const totalItems = categories.reduce((sum,category) => sum + quantities[category],0);
+    const garmentSales = categories.reduce((sum,category) => sum + quantities[category]*val(`${category}-price`),0);
+    const blankCosts = categories.reduce((sum,category) => sum + quantities[category]*val(`${category}-cost`),0);
+    const embroiderySales = totalItems*val('embroidery-price');
+    const digitizing = val('digitizing');
+    const materialCosts = totalItems*val('materials');
+    const otherCosts = val('other-costs');
+    const total = garmentSales + embroiderySales + digitizing;
+    const profit = total - blankCosts - materialCosts - otherCosts;
+    $('total').textContent = money(total);
+    $('profit').textContent = money(profit);
+    $('garment-sales').textContent = money(garmentSales);
+    $('embroidery-sales').textContent = money(embroiderySales);
+    $('digitizing-sales').textContent = money(digitizing);
+    $('blank-costs').textContent = '−' + money(blankCosts);
+    $('material-costs').textContent = '−' + money(materialCosts);
+    $('other-cost-display').textContent = '−' + money(otherCosts);
+    try { localStorage.setItem('apparel-order-calculator-v2', JSON.stringify(Object.fromEntries(ids.map(id=>[id,$(id).value])))); } catch (_) {}
+  }
+  function applyProduct(category) {
+    const product = catalog[category][ $(`${category}-product`).value ];
+    if (!product) return;
+    $(`${category}-price`).value = product.price;
+    $(`${category}-cost`).value = product.cost;
+    calculate();
+  }
+  numericIds.forEach(id => $(id).addEventListener('input', calculate));
+  categories.forEach(category => $(`${category}-product`).addEventListener('change', () => applyProduct(category)));
+  document.querySelectorAll('.qty-wrap .step').forEach(button => button.addEventListener('click', () => {
+    const input = button.parentElement.querySelector('input');
+    input.value = Math.max(0, (Number(input.value)||0) + Number(button.dataset.step));
+    calculate();
+  }));
+  $('reset').addEventListener('click', () => { ids.forEach(id => $(id).value = defaults[id]); calculate(); });
+  $('calculate-btn').addEventListener('click', () => {
+    calculate();
+    const button = $('calculate-btn');
+    button.textContent = 'Calculated ✓';
+    window.setTimeout(() => { button.textContent = 'Calculate Order'; }, 900);
+  });
+  try {
+    const saved = JSON.parse(localStorage.getItem('apparel-order-calculator-v2') || 'null');
+    if (saved) ids.forEach(id => {
+      if (saved[id] === undefined) return;
+      if (productIds.includes(id)) {
+        const category = id.replace('-product','');
+        if (catalog[category][saved[id]]) $(id).value = saved[id];
+      } else if (Number.isFinite(Number(saved[id]))) {
+        $(id).value = saved[id];
+      }
+    });
+  } catch (_) {}
+  calculate();
+})();
+</script>
+</body>
+</html>
